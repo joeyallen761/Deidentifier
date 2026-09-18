@@ -1,0 +1,9 @@
+*.mov
+*.MOV
+*.mp4
+*.MP4
+
+__pycache__/
+.ritel_env/
+.venv/
+
