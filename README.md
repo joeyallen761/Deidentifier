@@ -4,7 +4,7 @@ This script runs locally and blacks out detected faces in a video. It writes a n
 
 ## Install
 
-Create and activate a virtual environment:
+Download or clone this repository. Within the directory, create and activate a virtual environment:
 
 ```bash
 python3 -m venv .venv
