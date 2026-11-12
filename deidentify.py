@@ -4,11 +4,14 @@
 from __future__ import annotations
 
 import math
+import shutil
 import sys
 from pathlib import Path
 
 import cv2
 import numpy as np
+
+from restore_audio import restore_audio
 
 
 MODEL_FILE = "face_detection_yunet_2023mar.onnx"
@@ -72,6 +75,10 @@ def open_video_writer(output_path: Path, fps: float, width: int, height: int):
         f"Tried MP4 codecs: {', '.join(MP4_CODECS)}\n"
         "This usually means your OpenCV install cannot encode MP4 on this Mac."
     )
+
+
+def preserve_audio(input_path: Path, output_path: Path) -> None:
+    restore_audio(output_path, input_path, output_path, require_audio=False)
 
 
 def clamp_rect(rect: tuple[float, float, float, float], width: int, height: int) -> tuple[int, int, int, int]:
@@ -232,6 +239,10 @@ def main() -> int:
         print(f"Output already exists; refusing to overwrite: {output_path}", file=sys.stderr)
         return 1
 
+    if any(shutil.which(executable) is None for executable in ("ffmpeg", "ffprobe")):
+        print("FFmpeg and ffprobe are required to preserve timing and audio. Install FFmpeg and rerun this script.", file=sys.stderr)
+        return 1
+
     script_dir = Path(__file__).resolve().parent
     model_path = script_dir / MODEL_FILE
 
@@ -283,6 +294,10 @@ def main() -> int:
             ok, frame = cap.read()
             frame_index += 1
 
+        writer.release()
+        writer = None
+        print("Adding original audio to the processed video...")
+        preserve_audio(input_path, output_path)
         print(f"Done. Wrote {output_path}")
         return 0
     except Exception as exc:
